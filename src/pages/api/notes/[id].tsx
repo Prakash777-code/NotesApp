@@ -1,6 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { Content } from "next/font/google";
-import { title } from "process";
 import db from "@/lib/db";
 import { Notes } from "@/types/notes";
 
