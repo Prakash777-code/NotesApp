@@ -15,8 +15,10 @@ export default function Home() {
       if (!res.ok) {
         throw new Error("Unable to fetch notes");
       }
+
       const data = await res.json();
       setNote(data);
+      
     } catch (error) {
       console.log(error);
     }
@@ -35,8 +37,11 @@ export default function Home() {
     }
 
     try {
+
       setLoading(true);
+
       if (editId) {
+
         const res = await fetch(`/api/notes/${editId}`, {
           method: "PUT",
           headers: {
@@ -52,7 +57,9 @@ export default function Home() {
         setEditId(null);
         setTitle("");
         setContent("");
+
       } else {
+
         const res = await fetch("/api/notes", {
           method: "POST",
           headers: {
@@ -69,9 +76,11 @@ export default function Home() {
         setContent("");
       }
       await fetchNotes();
+
     } catch (error) {
       console.log(error);
       alert("Something went wrong, try again");
+
     } finally {
       setLoading(false);
     }
@@ -88,6 +97,7 @@ export default function Home() {
       }
 
       await fetchNotes();
+      
     } catch (error) {
       console.log(error);
     }

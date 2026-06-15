@@ -14,7 +14,7 @@ export default async function handler(
       console.log(error);
 
       res.status(500).json({
-        mesaage: "Failed to fetch notes",
+        message: "Failed to fetch notes",
       });
     }
   }
@@ -44,5 +44,9 @@ export default async function handler(
       });
     }
   }
+
+  return res.status(405).json({
+    message:`Method ${req.method} not allowed`
+  })
 
 }

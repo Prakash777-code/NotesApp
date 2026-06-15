@@ -46,7 +46,7 @@ export default async function handler(
         )
 
         if(result.affectedRows === 0){
-            return res.status(500).json({
+            return res.status(404).json({
                 message:"Note not found"
             })
         }
@@ -77,7 +77,7 @@ export default async function handler(
         }
 
         return res.status(200).json({
-            messgae:"Note deleted"
+            message:"Note deleted"
         })
     }catch(error){
         console.log(error)
@@ -87,7 +87,7 @@ export default async function handler(
     }
   }
 
-  return res.status(404).json({
+  return res.status(405).json({
     message:"Method not allowed"
   })
 }
