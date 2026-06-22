@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import db from "@/lib/db";
 import { Notes } from "@/types/notes";
+import { verifyToken } from "@/lib/auth";
 
 export default async function handler(
   req: NextApiRequest,
@@ -8,9 +9,16 @@ export default async function handler(
 ) {
   const { id } = req.query;
 
+  const user = verifyToken(req)
+  if(!user){
+    return res.status(401).json({
+        message:"Unauthorized"
+    })
+  }
+
   if (req.method === "GET") {
     try {
-      const [rows] = await db.query("SELECT * FROM notes WHERE id=?", [id]);
+      const [rows] = await db.query("SELECT * FROM notes WHERE id=? AND user_id=?", [id,user.userId]);
 
       const notes = rows as Notes[];
 
@@ -41,8 +49,8 @@ export default async function handler(
 
     try{
         const [result]:any = await db.query(
-            "UPDATE notes SET title=?, content=? WHERE id=?",
-            [title,content,id]
+            "UPDATE notes SET title=?, content=? WHERE id=? AND user_id=?",
+            [title,content,id,user.userId]
         )
 
         if(result.affectedRows === 0){
@@ -66,8 +74,8 @@ export default async function handler(
 
     try{
         const [result]:any = await db.query(
-            "DELETE FROM notes WHERE id=?",
-            [id]
+            "DELETE FROM notes WHERE id=? AND user_id=?",
+            [id,user.userId]
         )
 
         if(result.affectedRows === 0){
@@ -85,9 +93,5 @@ export default async function handler(
             message:"Failed to delete note"
         })
     }
-  }
-
-  return res.status(405).json({
-    message:"Method not allowed"
-  })
+  }  
 }

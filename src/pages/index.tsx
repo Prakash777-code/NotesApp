@@ -1,4 +1,6 @@
+import { getToken, removeToken } from "@/lib/token";
 import { Notes } from "@/types/notes";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -8,9 +10,20 @@ export default function Home() {
   const [editId, setEditId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const router = useRouter();
+
+  const handleLogout = () => {
+    removeToken();
+    router.push("/login");
+  };
+
   const fetchNotes = async () => {
     try {
-      const res = await fetch("/api/notes");
+      const res = await fetch("/api/notes", {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      });
 
       if (!res.ok) {
         throw new Error("Unable to fetch notes");
@@ -18,34 +31,38 @@ export default function Home() {
 
       const data = await res.json();
       setNote(data);
-      
     } catch (error) {
       console.log(error);
     }
   };
 
   useEffect(() => {
+    const token = getToken();
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
     fetchNotes();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if(!title || !content){
-      alert("Title and content are required")
-      return
+    if (!title || !content) {
+      alert("Title and content are required");
+      return;
     }
 
     try {
-
       setLoading(true);
 
       if (editId) {
-
         const res = await fetch(`/api/notes/${editId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${getToken()}`,
           },
           body: JSON.stringify({ title, content }),
         });
@@ -57,13 +74,12 @@ export default function Home() {
         setEditId(null);
         setTitle("");
         setContent("");
-
       } else {
-
         const res = await fetch("/api/notes", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${getToken()}`,
           },
           body: JSON.stringify({ title, content }),
         });
@@ -76,11 +92,9 @@ export default function Home() {
         setContent("");
       }
       await fetchNotes();
-
     } catch (error) {
       console.log(error);
       alert("Something went wrong, try again");
-
     } finally {
       setLoading(false);
     }
@@ -90,6 +104,9 @@ export default function Home() {
     try {
       const res = await fetch(`/api/notes/${id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
       });
 
       if (!res.ok) {
@@ -97,7 +114,6 @@ export default function Home() {
       }
 
       await fetchNotes();
-      
     } catch (error) {
       console.log(error);
     }
@@ -111,9 +127,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
-      <h1 className="text-2xl font-bold text-center mb-6  cursor-pointer">
-        Notes App
-      </h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Notes App</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 hover:bg-red-700 px-4 py-2   hover:scale-110 transition duration-300 cursor-pointer rounded-2xl"
+        >
+          Logout
+        </button>
+      </div>
 
       <form
         onSubmit={handleSubmit}

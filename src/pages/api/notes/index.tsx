@@ -1,14 +1,25 @@
 import db from "@/lib/db";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Notes } from "@/types/notes";
+import { verifyToken } from "@/lib/auth";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+
+  const user = verifyToken(req)
+
+  if(!user){
+    return res.status(401).json({
+      messgae:"Unauthorized"
+    })
+  }
+
+
   if (req.method == "GET") {
     try {
-      const [rows] = await db.query("SELECT * FROM notes");
+      const [rows] = await db.query("SELECT * FROM notes WHERE user_id=?", [user.userId])
       res.status(200).json(rows as Notes[]);
     } catch (error) {
       console.log(error);
@@ -29,9 +40,10 @@ export default async function handler(
     }
 
     try {
-      await db.query("INSERT INTO notes (title, content) VALUES (?,?)", [
+      await db.query("INSERT INTO notes (title, content, user_id) VALUES (?,?,?)", [
         title,
         content,
+        user.userId
       ]);
 
       return res.status(201).json({
@@ -44,9 +56,4 @@ export default async function handler(
       });
     }
   }
-
-  return res.status(405).json({
-    message:`Method ${req.method} not allowed`
-  })
-
 }
