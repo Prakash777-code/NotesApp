@@ -46,7 +46,6 @@ export default async function handler(req:NextApiRequest,res:NextApiResponse) {
         console.log(error)
         return res.status(500).json({
             message:"Failed to register user",
-            error: error instanceof Error ? error.message : error
         })
     }
 }
