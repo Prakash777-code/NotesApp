@@ -17,6 +17,7 @@ export function verifyToken(req: NextApiRequest): jwtPayload | null {
             process.env.JWT_SECRET as string
         ) as jwtPayload;
 
+
         return decoded;
 
     } catch (error) {

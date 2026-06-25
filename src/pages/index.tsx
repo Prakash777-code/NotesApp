@@ -2,6 +2,7 @@ import { getToken, removeToken } from "@/lib/token";
 import { Notes } from "@/types/notes";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function Home() {
   const [note, setNote] = useState<Notes[]>([]);
@@ -50,7 +51,7 @@ export default function Home() {
     e.preventDefault();
 
     if (!title || !content) {
-      alert("Title and content are required");
+      toast.error("Title and content are required")
       return;
     }
 
@@ -68,7 +69,10 @@ export default function Home() {
         });
 
         if (!res.ok) {
+          toast.error("Failed to update note")
           throw new Error("Failed to update note");
+        }else{
+          toast.success("Note updated")
         }
 
         setEditId(null);
@@ -86,6 +90,8 @@ export default function Home() {
 
         if (!res.ok) {
           throw new Error("Faild to create note");
+        }else{
+          toast.success("Note added")
         }
 
         setTitle("");
@@ -94,7 +100,7 @@ export default function Home() {
       await fetchNotes();
     } catch (error) {
       console.log(error);
-      alert("Something went wrong, try again");
+      toast.error("Something went wrong, try again");
     } finally {
       setLoading(false);
     }

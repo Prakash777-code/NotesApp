@@ -1,6 +1,7 @@
 import { setToken } from "@/lib/token";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function Login(){
 
@@ -15,7 +16,7 @@ export default function Login(){
         e.preventDefault()
 
         if(!email || !password){
-            alert("Email and password are required to login")
+            toast.error("Email and password are required to login")
             return
         }
 
@@ -33,13 +34,14 @@ export default function Login(){
 
             if(res.ok){
                 setToken(data.token)
+                toast.success("Welcome back")
                 router.push("/")
             }else{
-                alert("Login failed")
+                toast.error("Login failed")
             }
         }catch(error){
             console.log(error)
-            alert("Something went wrong")
+            toast.error("Something went wrong")
         }finally{
             setLoading(false)
         }

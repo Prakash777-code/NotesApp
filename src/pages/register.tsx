@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import toast from "react-hot-toast";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -31,14 +32,14 @@ export default function Register() {
         const data = await res.json()
 
         if(res.ok){
-            alert("Registered successfully you are ready to login")
+            toast.success("Registered successfully you are ready to login")
             router.push("/login")
         }else{
-            alert("Failed to register")
+            toast.error("Failed to register")
         }
     }catch(error){
         console.log(error)
-        alert("Something went wrong")
+        toast.error("Something went wrong")
     }finally{
         setLoading(false)
     }
@@ -101,8 +102,4 @@ export default function Register() {
       </div>
     </div>
   );
-
-   
-
-
 }
