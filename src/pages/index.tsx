@@ -10,6 +10,7 @@ export default function Home() {
   const [content, setContent] = useState("");
   const [editId, setEditId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadNotes, setLoadNotes] = useState(true);
 
   const router = useRouter();
 
@@ -20,6 +21,7 @@ export default function Home() {
 
   const fetchNotes = async () => {
     try {
+      setLoadNotes(true);
       const res = await fetch("/api/notes", {
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -34,6 +36,8 @@ export default function Home() {
       setNote(data);
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoadNotes(false);
     }
   };
 
@@ -51,7 +55,7 @@ export default function Home() {
     e.preventDefault();
 
     if (!title || !content) {
-      toast.error("Title and content are required")
+      toast.error("Title and content are required");
       return;
     }
 
@@ -69,10 +73,10 @@ export default function Home() {
         });
 
         if (!res.ok) {
-          toast.error("Failed to update note")
+          toast.error("Failed to update note");
           throw new Error("Failed to update note");
-        }else{
-          toast.success("Note updated")
+        } else {
+          toast.success("Note updated");
         }
 
         setEditId(null);
@@ -89,9 +93,10 @@ export default function Home() {
         });
 
         if (!res.ok) {
+          toast.error("Faild to create note");
           throw new Error("Faild to create note");
-        }else{
-          toast.success("Note added")
+        } else {
+          toast.success("Note added");
         }
 
         setTitle("");
@@ -117,6 +122,8 @@ export default function Home() {
 
       if (!res.ok) {
         throw new Error("Failed to delete note");
+      } else {
+        toast.success("Note deleted");
       }
 
       await fetchNotes();
@@ -177,32 +184,38 @@ export default function Home() {
       </form>
 
       <div className="max-w-md mx-auto mt-6 space-y-3">
-        {note.map((n) => (
-          <div
-            key={n.id}
-            className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-md hover:bg-gray-750 transition"
-          >
-            <h3 className="text-lg font-semibold text-white">{n.title}</h3>
-
-            <p className="text-gray-300 mt-1">{n.content}</p>
-
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => handleEdit(n)}
-                className="px-3 py-1 text-sm rounded bg-blue-600  hover:scale-110 transition duration-300 cursor-pointer"
-              >
-                Edit
-              </button>
-
-              <button
-                onClick={() => handleDelete(n.id)}
-                className="px-3 py-1 text-sm rounded bg-red-600  hover:scale-110 transition duration-300 cursor-pointer"
-              >
-                Delete
-              </button>
-            </div>
+        {loadNotes ? (
+          <div className="flex justify-center mt-10">
+            <div className="w-12 h-12 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
           </div>
-        ))}
+        ) : (
+          note.map((n) => (
+            <div
+              key={n.id}
+              className="bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-md hover:bg-gray-750 transition"
+            >
+              <h3 className="text-lg font-semibold text-white">{n.title}</h3>
+
+              <p className="text-gray-300 mt-1">{n.content}</p>
+
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => handleEdit(n)}
+                  className="px-3 py-1 text-sm rounded bg-blue-600 hover:scale-110 transition duration-300 cursor-pointer"
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() => handleDelete(n.id)}
+                  className="px-3 py-1 text-sm rounded bg-red-600 hover:scale-110 transition duration-300 cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
