@@ -1,53 +1,49 @@
-import { setToken } from "@/lib/token";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-export default function Login(){
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const [email,setEmail]=useState("")
-    const [password,setPassword]=useState("")
-    const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-    const router = useRouter()
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    const handleLogin = async (e:React.FormEvent) =>{
-
-        e.preventDefault()
-
-        if(!email || !password){
-            toast.error("Email and password are required to login")
-            return
-        }
-
-        try{
-            setLoading(true)
-            const res = await fetch("/api/auth/login",{
-                method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify({email,password})
-            })
-
-            const data = await res.json()
-
-            if(res.ok){
-                setToken(data.token)
-                toast.success("Welcome back")
-                router.push("/")
-            }else{
-                toast.error("Login failed")
-            }
-        }catch(error){
-            console.log(error)
-            toast.error("Something went wrong")
-        }finally{
-            setLoading(false)
-        }
+    if (!email || !password) {
+      toast.error("Email and password are required to login");
+      return;
     }
 
-    return (
+    try {
+      setLoading(true);
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Welcome back");
+        router.push("/");
+      } else {
+        toast.error("Login failed");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-gray-900 border border-gray-800 rounded-2xl shadow-xl p-8">
         <h1 className="text-3xl font-bold text-white text-center">

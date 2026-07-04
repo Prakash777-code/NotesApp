@@ -4,11 +4,8 @@ import { jwtPayload } from "@/types/jwt";
 
 export function verifyToken(req: NextApiRequest): jwtPayload | null {
     try {
-        const authHeader = req.headers.authorization;
-
-        if (!authHeader) return null;
-
-        const token = authHeader.split(" ")[1]; 
+        
+        const token = req.cookies.token;
 
         if (!token) return null;
 
@@ -17,6 +14,7 @@ export function verifyToken(req: NextApiRequest): jwtPayload | null {
             process.env.JWT_SECRET as string
         ) as jwtPayload;
 
+        console.log(decoded)
 
         return decoded;
 

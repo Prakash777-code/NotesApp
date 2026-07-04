@@ -7,24 +7,24 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const user = verifyToken(req);
 
-  const user = verifyToken(req)
-
-  if(!user){
+  if (!user) {
     return res.status(401).json({
-      messgae:"Unauthorized"
-    })
+      message: "Unauthorized",
+    });
   }
 
-
-  if (req.method == "GET") {
+  if (req.method === "GET") {
     try {
-      const [rows] = await db.query("SELECT * FROM notes WHERE user_id=?", [user.userId])
-      res.status(200).json(rows as Notes[]);
+      const [rows] = await db.query("SELECT * FROM notes WHERE user_id=?", [
+        user.userId,
+      ]);
+      return res.status(200).json(rows as Notes[]);
     } catch (error) {
       console.log(error);
 
-      res.status(500).json({
+      return res.status(500).json({
         message: "Failed to fetch notes",
       });
     }
@@ -40,11 +40,10 @@ export default async function handler(
     }
 
     try {
-      await db.query("INSERT INTO notes (title, content, user_id) VALUES (?,?,?)", [
-        title,
-        content,
-        user.userId
-      ]);
+      await db.query(
+        "INSERT INTO notes (title, content, user_id) VALUES (?,?,?)",
+        [title, content, user.userId],
+      );
 
       return res.status(201).json({
         message: "Note created",
@@ -56,4 +55,8 @@ export default async function handler(
       });
     }
   }
+
+  return res.status(405).json({
+    message:"Method not allowed"
+  })
 }

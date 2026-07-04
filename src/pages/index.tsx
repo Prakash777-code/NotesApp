@@ -1,4 +1,3 @@
-import { getToken, removeToken } from "@/lib/token";
 import { Notes } from "@/types/notes";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -14,19 +13,31 @@ export default function Home() {
 
   const router = useRouter();
 
-  const handleLogout = () => {
-    removeToken();
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+      if (res.ok) {
+        router.push("/login");
+      } else {
+        toast.error("Something went wrong");
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+      console.log(error);
+    }
   };
 
   const fetchNotes = async () => {
     try {
       setLoadNotes(true);
-      const res = await fetch("/api/notes", {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
-      });
+      const res = await fetch("/api/notes", {});
+
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
 
       if (!res.ok) {
         throw new Error("Unable to fetch notes");
@@ -42,12 +53,6 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const token = getToken();
-
-    if (!token) {
-      router.push("/login");
-      return;
-    }
     fetchNotes();
   }, []);
 
@@ -67,10 +72,14 @@ export default function Home() {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${getToken()}`,
           },
           body: JSON.stringify({ title, content }),
         });
+
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
 
         if (!res.ok) {
           toast.error("Failed to update note");
@@ -87,10 +96,14 @@ export default function Home() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${getToken()}`,
           },
           body: JSON.stringify({ title, content }),
         });
+
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
 
         if (!res.ok) {
           toast.error("Faild to create note");
@@ -115,10 +128,12 @@ export default function Home() {
     try {
       const res = await fetch(`/api/notes/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
       });
+
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
 
       if (!res.ok) {
         throw new Error("Failed to delete note");
