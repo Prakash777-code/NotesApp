@@ -9,15 +9,23 @@ export default async function handler(req:NextApiRequest, res:NextApiResponse) {
         })
     }
 
-    const cookie = serialize("token", "", {
+  const accessCookie = serialize("accessToken", "",{
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     expires: new Date(0),
-  });
+  })
 
-  res.setHeader("Set-Cookie", cookie)
+  const refreshCookie = serialize("refreshToken","",{
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    expires: new Date(0),
+  })
+
+  res.setHeader("Set-Cookie", [accessCookie,refreshCookie])
 
   return res.status(200).json({
     message:"Logged out successfully"

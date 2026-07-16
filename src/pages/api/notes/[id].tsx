@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import db from "@/lib/db";
 import { Notes } from "@/types/notes";
-import { verifyToken } from "@/lib/auth";
+import { verifyAccessToken } from "@/lib/auth";
 
 export default async function handler(
   req: NextApiRequest,
@@ -9,7 +9,7 @@ export default async function handler(
 ) {
   const { id } = req.query;
 
-  const user = verifyToken(req)
+  const user = verifyAccessToken(req)
   if(!user){
     return res.status(401).json({
         message:"Unauthorized"

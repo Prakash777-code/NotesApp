@@ -1,13 +1,13 @@
 import db from "@/lib/db";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Notes } from "@/types/notes";
-import { verifyToken } from "@/lib/auth";
+import { verifyAccessToken } from "@/lib/auth";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const user = verifyToken(req);
+  const user = verifyAccessToken(req);
 
   if (!user) {
     return res.status(401).json({

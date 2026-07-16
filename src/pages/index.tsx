@@ -1,4 +1,5 @@
 import { Notes } from "@/types/notes";
+import { error } from "console";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -32,18 +33,32 @@ export default function Home() {
   const fetchNotes = async () => {
     try {
       setLoadNotes(true);
-      const res = await fetch("/api/notes", {});
-
+      let res = await fetch("/api/notes", {});
       if (res.status === 401) {
-        router.push("/login");
-        return;
-      }
+        const refreshRes = await fetch("/api/auth/refresh", {
+          method: "POST",
+        });
 
-      if (!res.ok) {
-        throw new Error("Unable to fetch notes");
+        if (refreshRes.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (!refreshRes.ok) {
+          const data = await refreshRes.json();
+          toast.error(data.message);
+          return;
+        }
+
+        res = await fetch("/api/notes");
       }
 
       const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message);
+        return;
+      }
+
       setNote(data);
     } catch (error) {
       console.log(error);
@@ -68,31 +83,45 @@ export default function Home() {
       setLoading(true);
 
       if (editId) {
-        const res = await fetch(`/api/notes/${editId}`, {
+        let res = await fetch(`/api/notes/${editId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ title, content }),
         });
-
         if (res.status === 401) {
-          router.push("/login");
-          return;
+          const putRes = await fetch("/api/auth/refresh", {
+            method: "POST",
+          });
+          if (putRes.status === 401) {
+            router.push("/login");
+            return;
+          }
+          if (!putRes.ok) {
+            const data = await putRes.json();
+            toast.error(data.message);
+            return;
+          }
+          res = await fetch(`/api/notes/${editId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ title, content }),
+          });
         }
-
         if (!res.ok) {
           toast.error("Failed to update note");
-          throw new Error("Failed to update note");
-        } else {
-          toast.success("Note updated");
+          return;
         }
-
+        const data = await res.json();
+        toast.success(data.message);
         setEditId(null);
         setTitle("");
         setContent("");
       } else {
-        const res = await fetch("/api/notes", {
+        let res = await fetch("/api/notes", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -101,17 +130,35 @@ export default function Home() {
         });
 
         if (res.status === 401) {
-          router.push("/login");
-          return;
+          const postRes = await fetch("/api/auth/refresh", {
+            method: "POST",
+          });
+
+          if (postRes.status === 401) {
+            router.push("/login");
+            return;
+          }
+
+          if (!postRes.ok) {
+            const data = await postRes.json();
+            toast.error(data.message);
+            return;
+          }
+
+          res = await fetch(`/api/notes`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ title, content }),
+          });
         }
 
         if (!res.ok) {
           toast.error("Faild to create note");
-          throw new Error("Faild to create note");
-        } else {
-          toast.success("Note added");
-        }
-
+          return;
+        } 
+        toast.success("Note added")
         setTitle("");
         setContent("");
       }
@@ -126,20 +173,37 @@ export default function Home() {
 
   const handleDelete = async (id: number) => {
     try {
-      const res = await fetch(`/api/notes/${id}`, {
+      let res = await fetch(`/api/notes/${id}`, {
         method: "DELETE",
       });
 
       if (res.status === 401) {
-        router.push("/login");
-        return;
+        const deleteRes = await fetch("/api/auth/refresh", {
+          method: "POST",
+        });
+
+        if (deleteRes.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (!deleteRes.ok) {
+          const data = await deleteRes.json();
+          toast.error(data.message);
+          return;
+        }
+
+        res = await fetch(`/api/notes/${id}`, {
+          method: "DELETE",
+        });
       }
 
       if (!res.ok) {
-        throw new Error("Failed to delete note");
-      } else {
-        toast.success("Note deleted");
+        toast.error("Failed to delete note");
+        return;
       }
+
+      toast.success("Note deleted");
 
       await fetchNotes();
     } catch (error) {
