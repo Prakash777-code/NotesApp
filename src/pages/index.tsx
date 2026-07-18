@@ -157,8 +157,8 @@ export default function Home() {
         if (!res.ok) {
           toast.error("Faild to create note");
           return;
-        } 
-        toast.success("Note added")
+        }
+        toast.success("Note added");
         setTitle("");
         setContent("");
       }
