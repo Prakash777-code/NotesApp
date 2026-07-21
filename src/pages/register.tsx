@@ -31,6 +31,11 @@ export default function Register() {
 
         const data = await res.json()
 
+        if(res.status === 429){
+          toast.error(data.message)
+          return
+        }
+
         if(res.ok){
             toast.success("Registered successfully you are ready to login")
             router.push("/login")

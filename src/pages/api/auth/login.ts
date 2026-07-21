@@ -3,6 +3,7 @@ import db from "@/lib/db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { serialize } from "cookie";
+import { loginLimiter } from "@/lib/rateLimiter";
 
 export default async function handler(
   req: NextApiRequest,
@@ -14,15 +15,29 @@ export default async function handler(
     });
   }
 
+  const ip =
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
+    req.socket.remoteAddress ||
+    "unknown";
+
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({
+      message: "Email and passowrd are required",
+    });
+  }
+
+  const identifier = `${ip}:${email.toLowerCase()}`;
+
+  const { success } = await loginLimiter.limit(identifier);
+  if (!success) {
+    return res.status(429).json({
+      message: "Too many request. Please try again later",
+    });
+  }
+
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and passowrd are required",
-      });
-    }
-
     const [rows]: any = await db.query("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
@@ -70,7 +85,7 @@ export default async function handler(
       path: "/",
     });
 
-    res.setHeader("Set-Cookie", [accessCookie,refreshCookie]);
+    res.setHeader("Set-Cookie", [accessCookie, refreshCookie]);
 
     return res.status(200).json({
       message: "Logged in successfully",

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import db from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { signupLimiter } from "@/lib/rateLimiter";
 
 export default async function handler(req:NextApiRequest,res:NextApiResponse) {
     
@@ -9,6 +10,18 @@ export default async function handler(req:NextApiRequest,res:NextApiResponse) {
             message:"Method not allowed"
         })
     }
+
+    const ip =
+    (req.headers["x-forwarded-for"] as string)?.split(",")[0] ||
+    req.socket.remoteAddress ||
+    "unknown";
+
+    const { success } = await signupLimiter.limit(ip);
+     if (!success) {
+       return res.status(429).json({
+         message: "Too many request. Please try again later",
+       });
+     }
 
     try{
 

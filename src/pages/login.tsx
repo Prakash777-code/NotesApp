@@ -27,7 +27,12 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+       const data = await res.json();
+
+      if(res.status === 429){
+        toast.error(data.message)
+        return
+      }
 
       if (res.ok) {
         toast.success("Welcome back");
